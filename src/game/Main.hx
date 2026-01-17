@@ -1,5 +1,7 @@
 package game;
 
+import util.JsonPrint;
+import haxe.format.JsonPrinter;
 import haxe.Json;
 import h3d.scene.World;
 import game.services.Gemma;
@@ -37,7 +39,7 @@ class Main extends hxd.App {
 		trace("cool");
 		var w = new game.objects.World();
 		w.Generate();
-		trace(Json.stringify(w));
+		JsonPrint.Pretty(w);
 	}
 
 	override function update(dt:Float) {

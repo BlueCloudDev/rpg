@@ -6,7 +6,7 @@ OUTPUT_LIB = gemma.hdll
 
 # Compiler Settings
 CXX = g++
-CXXFLAGS = -O3 -std=c++17 -shared -fPIC -I$(HL_INCLUDE) -I$(LLAMA_PATH)/include -I$(LLAMA_PATH)/ggml/include
+CXXFLAGS = -O3 -std=c++17 -shared -fPIC -I$(HL_INCLUDE) -I$(LLAMA_PATH)/include -I$(LLAMA_PATH)/ggml/include -I$(shell haxelib libpath hashlink)src
 
 # Libraries (Static Llama libs + System libs)
 # Note: We link static libs (.a) into our shared lib (.hdll).

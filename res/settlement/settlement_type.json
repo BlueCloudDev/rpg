@@ -1,0 +1,9 @@
+[
+  {"type": "Abandoned", "minPop": 0},
+  {"type": "Homestead", "minPop": 1},
+  {"type": "Hamlet", "minPop": 60},
+  {"type": "Village", "minPop": 200},
+  {"type": "Town", "minPop": 1000},
+  {"type": "City", "minPop": 5000},
+  {"type": "Metropolis", "minPop": 25000}
+]

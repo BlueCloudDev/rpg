@@ -36,7 +36,6 @@ class Main extends hxd.App {
 		RegionGenerator.Init();
 		SettlementGenerator.Init();
 		WorldGenerator.Init();
-		trace("cool");
 		var w = new game.objects.World();
 		w.Generate();
 		JsonPrint.Pretty(w);

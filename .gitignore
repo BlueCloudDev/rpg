@@ -1,0 +1,41 @@
+# --- Build Outputs ---
+# Standard output folders for Haxe
+bin/
+build/
+out/
+dump/
+
+# --- Heaps / HashLink (Desktop Target) ---
+# HashLink bytecode files
+*.hl
+# HashLink boot file
+hlboot.dat
+# Resource package files (if you bake assets)
+*.pak
+
+# --- Heaps / Web (HTML5 Target) ---
+# Generated JavaScript files
+# (Note: Check that this doesn't hide your own .js source files)
+*.js
+*.js.map
+
+# --- Native / C++ Targets ---
+# If compiling to C++
+cpp/
+obj/
+
+# --- Haxe Tools & Dependencies ---
+# If using 'lix' package manager local libs
+.haxelib/
+_haxelib/
+
+# --- IDEs & Editors ---
+# VS Code (Optional: keep if you share launch configs)
+.vscode/
+# IntelliJ / Haxe Toolkit
+.idea/
+*.iml
+
+# --- OS Specific ---
+.DS_Store
+Thumbs.db

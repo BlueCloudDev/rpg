@@ -1,0 +1,9 @@
+-cp src
+-cp util
+-cp generation
+-lib heaps
+-lib hlsdl
+-main game.Main
+-hl dummy.hl
+--no-output
+--each

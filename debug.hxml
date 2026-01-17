@@ -1,0 +1,9 @@
+-cp src
+-cp util
+-cp generation
+-lib heaps
+-lib hlsdl
+-main game.Main
+-hl bin/game.hl
+-debug
+-D window=1280x720

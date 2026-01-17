@@ -1,0 +1,26 @@
+[
+    {
+        "label": "Build (Haxe)",
+        "command": "haxe debug.hxml",
+        "use_new_terminal": false,
+        "allow_concurrent_runs": false,
+        "reveal": "always"
+    },
+    {
+        "label": "Build & Run",
+        "command": "haxe debug.hxml && hl bin/game.hl",
+        "use_new_terminal": true,
+        "allow_concurrent_runs": false,
+        "reveal": "always",
+        "env": {
+            // 1. Tell SDL to use the Wayland driver explicitly
+            "SDL_VIDEODRIVER": "wayland",
+
+            // 2. Point to the runtime folder (Replace 1000 with your UID if different)
+            "XDG_RUNTIME_DIR": "/run/user/1000",
+
+            // 3. Point to the specific socket name you found in Step 1
+            "WAYLAND_DISPLAY": "wayland-0"
+        }
+    }
+]

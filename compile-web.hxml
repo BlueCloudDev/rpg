@@ -1,0 +1,13 @@
+# Compile flags common to all targets
+-cp src
+-lib heaps
+-main Main
+
+# The specific target: JavaScript
+-js hello.js
+
+# Enable debug symbols for better stack traces
+-debug
+
+# Optional: Set the initial window size
+-D windowSize=1280x720

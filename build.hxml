@@ -1,0 +1,13 @@
+-cp src
+-cp util
+-cp generation
+-lib heaps
+-lib hlsdl
+-main game.Main
+
+# Target: HL/C (Generates C code in the 'out' folder)
+-hl out/main.c
+
+# Resources and Window
+-D resourcesPath=res
+-D windowSize=1280x720

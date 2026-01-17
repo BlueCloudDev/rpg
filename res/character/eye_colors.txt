@@ -1,0 +1,100 @@
+Amber
+Baby Blue
+Blue
+Blue-Gray
+Blue-Green
+Brown
+Charcoal
+Chestnut
+Chocolate
+Cobalt
+Copper
+Cornflower
+Crystal
+Cyan
+Dark Blue
+Dark Brown
+Dark Green
+Dark Grey
+Dark Hazel
+Deep Blue
+Deep Purple
+Deep Violet
+Driftwood
+Ebony
+Electric Blue
+Emerald
+Espresso
+Fire
+Forest Green
+Garnet
+Glacier
+Gold
+Golden Brown
+Golden Green
+Gray
+Green
+Green-Gray
+Gunmetal
+Hazel
+Hazel-Blue
+Hazel-Green
+Honey
+Ice Blue
+Indigo
+Jade
+Jet Black
+Lapis
+Lavender
+Leaf Green
+Light Blue
+Light Brown
+Light Green
+Light Grey
+Lilac
+Lime
+Magenta
+Maroon
+Midnight
+Mint
+Moss
+Navy
+Night
+Obsidian
+Ocean Blue
+Olive
+Onyx
+Orange
+Pale Blue
+Pale Green
+Pale Grey
+Peach
+Pearl
+Periwinkle
+Pink
+Platinum
+Plum
+Purple
+Red
+Rose
+Royal Blue
+Ruby
+Rust
+Sapphire
+Scarlet
+Sea Green
+Silver
+Sky Blue
+Slate
+Smoke
+Steel
+Storm
+Sunset
+Tan
+Teal
+Topaz
+Turquoise
+Violet
+White
+Wine
+Yellow

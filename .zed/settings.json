@@ -1,0 +1,26 @@
+{
+    "lsp": {
+        "haxe-language-server": {
+            "initialization_options": {
+                "haxeExecutable": "/usr/bin/haxe",
+                "displayArguments": ["display.hxml"],
+                // PERFORMANCE SETTINGS
+                // -------------------------------------------------
+
+                // 1. The "Speed Switch": Keeps compiler in RAM (Critical)
+                "buildCompletionCache": true,
+
+                // 2. Don't choke on every single keystroke
+                // wait 0.5s after typing stops before checking code
+                "autoBuildDelay": 500,
+
+                // 3. Disable heavy features if you don't need them
+                "enableCodeLens": false,
+                "enableDiagnostics": true, // Set false if you just want autocomplete, no errors
+
+                // 4. Exclude massive folders from being watched
+                "exclude": ["zpp_nape", "assets", "bin"]
+            }
+        }
+    }
+}

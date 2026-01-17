@@ -1,0 +1,17 @@
+# Compile flags common to all targets
+-cp src
+-lib heaps
+-main Main
+
+# Libraries needed for native rendering via HashLink
+-lib hlsdl
+-lib format
+
+# The specific target: HashLink bytecode
+-hl hello.hl
+
+# Enable debug symbols
+-debug
+
+# Optional: Set the initial window size
+-D windowSize=1280x720

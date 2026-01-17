@@ -1,0 +1,233 @@
+#define HL_NAME(n) gemma_##n
+#include <hl.h>
+#include "GemmaWrapper.h"
+#include "llama.h"
+#include <vector>
+#include <string>
+#include <cstring> // Fixed: Added for strlen
+#include <iostream>
+#include <deque>
+
+static llama_model* model = nullptr;
+static llama_context* ctx = nullptr;
+
+void llama_batch_clear(llama_batch & batch) {
+    batch.n_tokens = 0;
+}
+
+void llama_batch_add(llama_batch & batch, llama_token id, llama_pos pos, const std::vector<llama_seq_id> & seq_ids, bool logits) {
+    if (batch.n_tokens >= 512) {
+      fprintf(stderr, "Error: Batch size exceeded!\n");
+      return;
+    }
+    batch.token   [batch.n_tokens] = id;
+    batch.pos     [batch.n_tokens] = pos;
+    batch.n_seq_id[batch.n_tokens] = seq_ids.size();
+    
+    for (size_t i = 0; i < seq_ids.size(); ++i) {
+        batch.seq_id[batch.n_tokens][i] = seq_ids[i];
+    }
+    
+    batch.logits  [batch.n_tokens] = logits ? 1 : 0;
+    batch.n_tokens++;
+}
+
+static bool is_eos(const llama_model * model, llama_token t) {
+    // Get the vocabulary from the model
+    const llama_vocab * vocab = llama_model_get_vocab(model);
+    
+    // Use the vocab API to check for End-Of-Sentence or End-Of-Turn
+    return t == llama_vocab_eos(vocab) || t == llama_vocab_eot(vocab);
+}
+
+void GemmaWrapper::init(const char* model_path) {
+    llama_model_params model_params = llama_model_default_params();
+    model = llama_model_load_from_file(model_path, model_params);
+
+    if (!model) {
+        fprintf(stderr, "Failed to load model\n");
+        return;
+    }
+
+    llama_context_params ctx_params = llama_context_default_params();
+    ctx_params.n_ctx = 32768;
+    ctx_params.n_threads = 4;
+    ctx_params.n_threads_batch = 4;
+
+    ctx = llama_init_from_model(model, ctx_params);
+    if (!ctx) {
+        fprintf(stderr, "Failed to create context\n");
+    }
+}
+
+const char* GemmaWrapper::query(const char* prompt_text) {
+    if (!model || !ctx) return "Error: Model not initialized";
+
+    if (!ctx) return "Error: Failed to create context";
+    // ----------------------------------------------------------------
+    // 0. Get Vocabulary
+    // ----------------------------------------------------------------
+    const llama_vocab * vocab = llama_model_get_vocab(model);
+
+    // ----------------------------------------------------------------
+    // 1. Tokenize the Prompt (Using vocab, not model)
+    // ----------------------------------------------------------------
+    // Calculate required size first
+    int n_tokens = -llama_tokenize(vocab, prompt_text, strlen(prompt_text), NULL, 0, true, false);
+    std::vector<llama_token> tokens_list(n_tokens);
+    
+    // Actually tokenize
+    if (llama_tokenize(vocab, prompt_text, strlen(prompt_text), tokens_list.data(), n_tokens, true, false) < 0) {
+        return "Error: Tokenization failed";
+    }
+
+    // ----------------------------------------------------------------
+    // 2. Prepare the Batch
+    // ----------------------------------------------------------------
+
+    llama_batch batch = llama_batch_init(2048, 0, 1); 
+    for (size_t i = 0; i < tokens_list.size(); i++) {
+        if (batch.n_tokens >= 2048) break;
+        bool output_logits = (i == tokens_list.size() - 1);
+        llama_batch_add(batch, tokens_list[i], i, { 0 }, output_logits);
+    }
+    printf("Processing Prompt (%zu tokens)... ", tokens_list.size()); 
+    fflush(stdout);
+    // ----------------------------------------------------------------
+    // 3. Decode
+    // ----------------------------------------------------------------
+    if (llama_decode(ctx, batch) != 0) {
+        llama_batch_free(batch);
+        return "Error: llama_decode failed";
+    }
+
+    // ----------------------------------------------------------------
+    // 4. Initialize Sampler
+    // ----------------------------------------------------------------
+    llama_sampler * smpl = llama_sampler_chain_init(llama_sampler_chain_default_params());
+    llama_sampler_chain_add(smpl, llama_sampler_init_greedy());
+
+    // ----------------------------------------------------------------
+    // 5. Generation Loop
+    // ----------------------------------------------------------------
+    static std::string result_str;
+    result_str.clear();
+    
+    int n_cur = batch.n_tokens; 
+    int n_predict = 256;
+    
+    // SAFETY: Keep track of last 3 tokens to prevent loops manually
+    std::deque<llama_token> gen_history; 
+
+    printf("Generating: ");
+    fflush(stdout);
+
+    for (int i = 0; i < n_predict; i++) {
+        // Sample from the last token
+        llama_token new_token_id = llama_sampler_sample(smpl, ctx, -1);
+
+        // Check EOS using our updated helper
+        if (is_eos(model, new_token_id)) {
+            break;
+        }
+
+        // --- ROBUST LOOP BREAKER ---
+        gen_history.push_back(new_token_id);
+        
+        bool loop_detected = false;
+        int hist_len = gen_history.size();
+
+        // Check patterns of length 1 (A A A) to 8 (ABCD ABCD ABCD)
+        for (int pat_len = 1; pat_len <= 8; pat_len++) {
+            // We need 3 repetitions to confirm a loop: A B | A B | A B
+            // So we need history size >= pat_len * 3
+            if (hist_len < pat_len * 3) continue;
+
+            bool match = true;
+            // Check if the last 3 segments are identical
+            for (int k = 0; k < pat_len; k++) {
+                llama_token t1 = gen_history[hist_len - 1 - k];                 // Current
+                llama_token t2 = gen_history[hist_len - 1 - k - pat_len];       // Previous
+                llama_token t3 = gen_history[hist_len - 1 - k - (pat_len * 2)]; // Pre-Previous
+                
+                if (t1 != t2 || t2 != t3) {
+                    match = false;
+                    break;
+                }
+            }
+            
+            if (match) {
+                printf(" [Loop Detected (Len %d) - Stopping] ", pat_len);
+                loop_detected = true;
+                break;
+            }
+        }
+
+        if (loop_detected) break;
+        // ---------------------------
+    
+        // Convert Token to Text (Using vocab, not model)
+        char buf[256];
+        int n = llama_token_to_piece(vocab, new_token_id, buf, sizeof(buf), 0, true);
+        
+        if (n >= 0) {
+          std::string piece(buf, n);
+          result_str += piece;
+          printf("%s", piece.c_str());
+          fflush(stdout);
+
+          // Stop Check 2: String Match (Gemma specific)
+          // If the model generates the text tag instead of the token, stop.
+          if (result_str.find("<end_of_turn>") != std::string::npos) {
+              // Remove the tag from the output for cleanliness
+              printf("<end_of_turn> found");
+              size_t pos = result_str.find("<end_of_turn>");
+              result_str = result_str.substr(0, pos);
+              break;
+          }
+        }
+
+        // Prepare Next Step
+        llama_batch_clear(batch);
+        llama_batch_add(batch, new_token_id, n_cur, { 0 }, true);
+        n_cur++;
+
+        if (llama_decode(ctx, batch) != 0) {
+            result_str += " [Error: Decode Failed]";
+            break;
+        }
+    }
+
+    // Cleanup
+    llama_sampler_free(smpl);
+    llama_batch_free(batch);
+
+    return result_str.c_str();
+}
+
+// ---------------------------------------------------------
+// HashLink Glue Code
+// ---------------------------------------------------------
+extern "C" {
+
+    // Matches: @:hlNative("gemma", "init")
+    // Haxe Type: (modelPath:hl.Bytes) -> Void
+    void gemma_init(vbyte* model_path) {
+        // Cast vbyte* (unsigned char*) to char* for C++
+        GemmaWrapper::init((char*)model_path);
+    }
+
+    // Matches: @:hlNative("gemma", "query")
+    // Haxe Type: (prompt:hl.Bytes) -> hl.Bytes
+    vbyte* gemma_query(vbyte* prompt) {
+        // 1. Get the C string from C++
+        // Ensure GemmaWrapper::query returns a pointer that persists (static or allocated)
+        const char* result_c_str = GemmaWrapper::query((char*)prompt);
+
+        // 2. Return it directly as vbyte*
+        // Note: For HLC (static compilation), returning the pointer directly is usually fine 
+        // as long as you convert it to a Haxe String immediately on the other side.
+        return (vbyte*)result_c_str;
+    }
+
+}

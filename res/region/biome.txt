@@ -1,0 +1,35 @@
+Tundra
+Taiga
+Boreal Forest
+Coniferous Forest
+Deciduous Forest
+Temperate Rainforest
+Tropical Rainforest
+Jungle
+Grassland
+Savanna
+Steppe
+Prairie
+Chaparral
+Shrubland
+Desert
+Badlands
+Wasteland
+Alpine
+Montane
+Plateau
+Canyon
+Wetland
+Swamp
+Marsh
+Bog
+Fen
+Moor
+Heath
+Mangrove
+Coastal
+Dunes
+Oasis
+Glacier
+Ice Sheet
+Volcanic

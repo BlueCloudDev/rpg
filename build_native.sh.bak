@@ -1,0 +1,91 @@
+#!/bin/bash
+
+# --- CONFIGURATION ---
+LLAMA_PATH="/home/apparition/git/llama.cpp"
+HL_INCLUDE="/usr/local/include" 
+HL_LIB_PATH="/usr/local/lib" # Default install location for .hdll files
+
+# 1. Define Llama Static Libs
+LIB_LLAMA="$LLAMA_PATH/build/src/libllama.a"
+LIB_GGML="$LLAMA_PATH/build/ggml/src/libggml.a"
+LIB_GGML_CPU="$LLAMA_PATH/build/ggml/src/ggml-cpu/libggml-cpu.a"
+LIB_GGML_BASE="$LLAMA_PATH/build/ggml/src/libggml-base.a"
+
+# 2. Define HashLink Extensions (The missing piece!)
+# These contain the implementation for fmt, sdl, ui, uv functions.
+# We treat them as shared libraries for linking.
+HL_EXTS="$HL_LIB_PATH/fmt.hdll $HL_LIB_PATH/sdl.hdll $HL_LIB_PATH/ui.hdll $HL_LIB_PATH/uv.hdll $HL_LIB_PATH/openal.hdll"
+
+# 3. Define System Dependencies for those Extensions
+# fmt needs png/jpeg/vorbis; sdl needs SDL2; uv needs libuv, etc.
+SYS_LIBS="-lSDL2 -lGL -lopenal -lpng -ljpeg -lz -luv -lvorbisfile -lvorbis -logg -lmbedtls -lmbedcrypto"
+
+# --- LIBRARY CHECK ---
+LIBS_TO_LINK="$LIB_LLAMA $LIB_GGML"
+
+# Check Llama libs
+if [ -f "$LIB_GGML_CPU" ]; then
+    LIBS_TO_LINK="$LIBS_TO_LINK $LIB_GGML_CPU"
+else
+    # Try alternate location
+    LIB_GGML_CPU_ALT="$LLAMA_PATH/build/ggml/src/libggml-cpu.a"
+    if [ -f "$LIB_GGML_CPU_ALT" ]; then
+        LIBS_TO_LINK="$LIBS_TO_LINK $LIB_GGML_CPU_ALT"
+    fi
+fi
+if [ -f "$LIB_GGML_BASE" ]; then
+    LIBS_TO_LINK="$LIBS_TO_LINK $LIB_GGML_BASE"
+fi
+
+# Check HashLink libs
+for ext in $HL_EXTS; do
+    if [ ! -f "$ext" ]; then
+        echo "Warning: Could not find HashLink extension: $ext"
+        echo "Ensure you have installed HashLink correctly (usually 'make install' puts them in /usr/local/lib)"
+    fi
+done
+
+# 4. Clean and Prepare
+rm -rf out
+mkdir -p out
+
+# 5. Run Haxe
+echo "Generating Haxe code..."
+if haxe build.hxml; then
+    echo "Haxe generation successful."
+else
+    echo "Haxe failed. Stop."
+    exit 1
+fi
+
+# 6. Compile Haxe-generated C code
+echo "Compiling Haxe C code..."
+gcc -O3 -c out/main.c -o out/main.o \
+    -I out/ \
+    -I $HL_INCLUDE \
+    -Wno-permissive
+
+# 7. Compile C++ Wrapper
+echo "Compiling C++ Wrapper..."
+g++ -O3 -c native/GemmaWrapper.cpp -o native/GemmaWrapper.o \
+    -std=c++17 \
+    -I native/ \
+    -I $LLAMA_PATH/include \
+    -I $LLAMA_PATH/ggml/include
+
+if [ $? -ne 0 ]; then
+    echo "Wrapper compilation failed."
+    exit 1
+fi
+
+# 8. Link everything
+echo "Linking..."
+g++ out/main.o native/GemmaWrapper.o \
+    -o mygame \
+    $LIBS_TO_LINK \
+    $HL_EXTS \
+    $SYS_LIBS \
+    -lhl -lpthread -lm -ldl -lstdc++ \
+    -fopenmp
+
+echo "Build complete! Run with ./mygame"

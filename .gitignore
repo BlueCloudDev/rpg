@@ -4,6 +4,7 @@ bin/
 build/
 out/
 dump/
+res/model
 
 # --- Heaps / HashLink (Desktop Target) ---
 # HashLink bytecode files

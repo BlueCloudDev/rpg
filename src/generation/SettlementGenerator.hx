@@ -5,6 +5,7 @@ import util.Random.RandomNumbers;
 import game.objects.SettlementTypeData;
 import haxe.Json;
 import game.objects.SettlementEconomy;
+import game.objects.Settlement;
 
 class SettlementGenerator {
 	static var prefixes:Array<String>;
@@ -46,6 +47,19 @@ class SettlementGenerator {
 		return name;
 	}
 
+	public static function GenerateSettlements() {
+		var ses = new Array<Settlement>();
+		var num = RandomNumbers.intRange(2, 5);
+		for (i in 0...num) {
+			var s = new Settlement();
+			s.Name = GenerateName();
+			s.Population = GeneratePopulation();
+			s.Type = GetSettlementType(s.Population);
+			s.Economy = GenerateSettlementEconomy(s.Population);
+			ses.push(s);
+		}
+		return ses;
+	}
 	public static function GeneratePopulation():Int {
 		var pop = RandomNumbers.intRange(10,10000);
 		return pop;
@@ -60,16 +74,13 @@ class SettlementGenerator {
 		return "Invalid";
 	}
 
-	public static function GenerateSettlementEconomy(population: Int):String {
+	public static function GenerateSettlementEconomy(population: Int):SettlementEconomy{
 		var se = new SettlementEconomy();
 		se.WealthLevel = wealthLevels[Std.random(wealthLevels.length)];
 		if (population >= MIN_POP_EXPORTS) {
 			
 		}
-	}
-
-	public static function GenerateEconomy():String {
-
+		return se;
 	}
 
 	// --- Helper Functions ---

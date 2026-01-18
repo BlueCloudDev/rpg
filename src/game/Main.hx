@@ -1,9 +1,6 @@
 package game;
 
 import util.JsonPrint;
-import haxe.format.JsonPrinter;
-import haxe.Json;
-import h3d.scene.World;
 import game.services.Gemma;
 import sys.thread.Deque;
 import generation.NameGenerator;
@@ -11,6 +8,7 @@ import generation.ApperanceGenerator;
 import generation.SettlementGenerator;
 import generation.RegionGenerator;
 import generation.WorldGenerator;
+import game.scenes.MainMenu;
 
 class Main extends hxd.App {
 	var outputText:h2d.Text;
@@ -23,14 +21,7 @@ class Main extends hxd.App {
 		// ------------------------------------------------
 		hxd.Res.initLocal();
 		Gemma.load();
-		var font = hxd.res.DefaultFont.get();
 
-		outputText = new h2d.Text(font, s2d);
-		outputText.text = "Initializing System...\n";
-		outputText.scale(2); // Make text bigger
-		outputText.textColor = 0xFFFFFF;
-
-		// NameGenerator.generateNameFile();
 		NameGenerator.Init();
 		AppearanceGenerator.Init();
 		RegionGenerator.Init();
@@ -38,7 +29,9 @@ class Main extends hxd.App {
 		WorldGenerator.Init();
 		var w = new game.objects.World();
 		w.Generate();
-		JsonPrint.Pretty(w);
+
+		var mainMenu = new MainMenu();
+		this.setScene(mainMenu);
 	}
 
 	override function update(dt:Float) {

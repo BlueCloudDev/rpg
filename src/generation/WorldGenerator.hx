@@ -1,4 +1,5 @@
 package generation;
+import game.objects.World;
 
 enum WorldGenerationTypes {
 	Genre;
@@ -49,6 +50,13 @@ class WorldGenerator {
 		}
 	}
 
+	public static function GenerateWorld():World {
+		var w = new World();
+		w.Meta.Generate();
+		w.Geography.Generate();
+		return w;
+	}
+
 	/**
 	 * Generates a random fantasy name.
 	 * @param complex If true, adds a chance for a 3-part name (Prefix-Middle-Suffix).
@@ -76,7 +84,6 @@ class WorldGenerator {
 		return name;
 	}
 
-	public static function GenerateWorld() {}
 
 	static function formatName(s:String):String {
 		if (s.length == 0)

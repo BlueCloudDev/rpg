@@ -11,12 +11,6 @@ class Region {
 
 	public function new() {}
 
-	public function Generate() {
-		Name = RegionGenerator.GenerateName();
-		Biome = RegionGenerator.GetRandomBiome();
-		GenerateSettlements();
-	}
-
 	public function GetPrompt():String {
 		var prompt = new StringBuf();
 		prompt.add('Name: $Name\n');
@@ -30,11 +24,4 @@ class Region {
 		return prompt.toString();
 	}
 
-	public function GenerateSettlements() {
-		var settlements = RandomNumbers.intRange(2, 5);
-		for (i in 0...settlements) {
-			var s = new Settlement();
-			s.Name = SettlementGenerator.GenerateName();
-		}
-	}
 }

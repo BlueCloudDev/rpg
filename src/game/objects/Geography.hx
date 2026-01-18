@@ -1,6 +1,7 @@
 package game.objects;
 
 import util.Random.RandomNumbers;
+import generation.RegionGenerator;
 
 class Geography {
 	public var Regions:Map<String, Region> = new Map<String, Region>();
@@ -10,8 +11,7 @@ class Geography {
 	public function Generate() {
 		var numRegion = RandomNumbers.intRange(3, 6);
 		for (i in 0...numRegion) {
-			var r = new Region();
-			r.Generate();
+			var r = RegionGenerator.GenerateRegion();
 			Regions.set(r.Name, r);
 		}
 	}

@@ -1,6 +1,7 @@
 package generation;
 
 import hxd.Res;
+import game.objects.Region;
 
 class RegionGenerator {
 	static var prefixes:Array<String>;
@@ -13,6 +14,17 @@ class RegionGenerator {
 		roots = Res.region.name_root.entry.getText().split("\n");
 		suffixes = Res.region.name_suffix.entry.getText().split("\n");
 		biomes = Res.region.biome.entry.getText().split("\n");
+	}
+
+	public static function GenerateRegion() {
+		var r = new Region();
+		r.Name = GenerateName();
+		r.Biome = GetRandomBiome();
+		var ss = SettlementGenerator.GenerateSettlements();
+		for (s in ss) {
+			r.Settlements.set(s.Name, s);
+		}
+		return r;
 	}
 
 	public static function GenerateName():String {
